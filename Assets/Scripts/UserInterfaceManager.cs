@@ -24,6 +24,7 @@ public class UserInterfaceManager : MonoBehaviour
 
     private Text _bestText;
     private GameOverScreen _gameOver;
+    private readonly List<GameObject> _extraHearts = new List<GameObject>();
 
     private void Awake()
     {
@@ -84,6 +85,62 @@ public class UserInterfaceManager : MonoBehaviour
         _gameOver.Show(score, HighScore.Best, newRecord, Start_OnClick, EndGame);
     }
 
+    /// <summary>
+    /// Brings back the rightmost lost heart (hearts are lost from the left).
+    /// </summary>
+    public void RestoreHeart()
+    {
+        Transform health = GameScreen.transform.Find("Health");
+        for (int i = health.childCount - 1; i >= 0; i--)
+        {
+            GameObject heart = health.GetChild(i).gameObject;
+            if (!heart.activeSelf)
+            {
+                heart.SetActive(true);
+                return;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Refills every heart.
+    /// </summary>
+    public void RestoreAllHearts()
+    {
+        foreach (Transform heart in GameScreen.transform.Find("Health"))
+        {
+            heart.gameObject.SetActive(true);
+        }
+    }
+
+    /// <summary>
+    /// Adds a bonus heart to the row. It is removed again when the next run starts.
+    /// </summary>
+    public void AddHeart()
+    {
+        Transform health = GameScreen.transform.Find("Health");
+        if (health.childCount == 0)
+        {
+            return;
+        }
+
+        GameObject copy = Instantiate(health.GetChild(health.childCount - 1).gameObject, health);
+        copy.SetActive(true);
+        _extraHearts.Add(copy);
+    }
+
+    private void ClearExtraHearts()
+    {
+        foreach (GameObject heart in _extraHearts)
+        {
+            if (heart != null)
+            {
+                Destroy(heart);
+            }
+        }
+        _extraHearts.Clear();
+    }
+
     public void AdjustScore(int amount)
     {
         ScoreText.text = "Score: " + amount;
@@ -110,6 +167,7 @@ public class UserInterfaceManager : MonoBehaviour
     /// </summary>
     public void Start_OnClick()
     {
+        ClearExtraHearts();
         GameManager.SetActive(true);
         ScoreText.text = "Score: 0";
 
