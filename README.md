@@ -16,7 +16,13 @@ Open the project folder with Unity 2018.3.5f1 (or newer) and load `Assets/Scenes
 - Synthesised sound effects (`python3 Tools/GenerateSfx.py` regenerates them)
 - Saved best score and a game over screen with Retry
 - Difficulty waves: Rookies (easy), Fighters (medium), Aces (hard), then a Boss, repeating tougher each round
-- The player's gun upgrades as enemies are destroyed: single, fast, double, triple spread, five-way
+- Difficulty selector (Easy / Normal / Hard) on the main menu
+- Pickups dropped by enemies: heart, shield and screen-clearing bomb
+- Boss health bar with a second "enraged" phase, and a bonus heart for beating a boss
+- Enemy variety: strafers, kamikaze chasers and V / line formations
+- Combo multiplier for chained kills
+- Pause menu, vibration and optional manual fire button on mobile
+- The player's gun upgrades as enemies are destroyed: single, fast, double, triple spread, five-way, and one level is lost whenever you are hit
 
 ## Controls
 | Platform | Move | Shoot |
