@@ -90,7 +90,7 @@ public class GameManager : MonoBehaviour
             Destroy(enemy);
         }
 
-        UserInterface.EndGame(); //Adjust the UI
+        UserInterface.EndGame(_score); //Adjust the UI
     }
 
 }
