@@ -56,7 +56,7 @@ public class GameManager : MonoBehaviour
 
         // Start() also runs from OnEnable, so make sure only one spawn loop is ever active
         CancelInvoke();
-        Player.GetComponent<Player>().SetWeaponLevel(1);
+        Player.GetComponent<Player>().SetWeaponLevel(1, false);
         AnnounceWave();
         if (SpawnEnemies)
         {
@@ -119,7 +119,7 @@ public class GameManager : MonoBehaviour
         // Every kill can upgrade the player's gun and move the game on to the next wave
         _kills++;
         _waveKills++;
-        Player.GetComponent<Player>().SetWeaponLevel(WaveConfig.WeaponLevelForKills(_kills));
+        Player.GetComponent<Player>().RegisterKill();
 
         WaveDefinition current = WaveConfig.Get(_wave);
         bool waveCleared = current.IsBoss ? wasBoss : _waveKills >= current.KillsToAdvance;
