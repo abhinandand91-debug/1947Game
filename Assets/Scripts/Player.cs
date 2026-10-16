@@ -80,7 +80,7 @@ public class Player : Ship
     /// <summary>
     /// Sets the weapon level (1-5). Higher levels shoot faster and add more lasers.
     /// </summary>
-    public void SetWeaponLevel(int level)
+    public void SetWeaponLevel(int level, bool announce = true)
     {
         level = Mathf.Clamp(level, 1, FireDelayScale.Length);
         if (_baseFireDelay <= 0f)
@@ -88,11 +88,21 @@ public class Player : Ship
             _baseFireDelay = FireDelay;
         }
 
-        bool upgraded = level > WeaponLevel;
+        int previous = WeaponLevel;
+        bool upgraded = level > previous;
         WeaponLevel = level;
         FireDelay = _baseFireDelay * FireDelayScale[level - 1];
 
-        if (upgraded && level > 1)
+        if (!announce)
+        {
+            return;
+        }
+
+        if (previous > 0 && level < previous)
+        {
+            ScreenFx.Popup(transform.position, "WEAPON LV " + level, new Color(1f, 0.4f, 0.4f), 1.2f);
+        }
+        else if (upgraded && level > 1)
         {
             Sfx.Play("weapon_up");
             ScreenFx.Popup(transform.position, "WEAPON LV " + level, new Color(0.5f, 0.9f, 1f), 1.2f);
@@ -129,6 +139,41 @@ public class Player : Ship
         StartCooldown();
     }
 
+    // Kills needed at each level to reach the next one (level 1 to 2, 2 to 3, ...)
+    private static readonly int[] KillsPerUpgrade = { 4, 6, 8, 10 };
+
+    private int _killsAtLevel;
+
+    /// <summary>
+    /// Counts a kill towards the next weapon upgrade.
+    /// </summary>
+    public void RegisterKill()
+    {
+        if (WeaponLevel < 1 || WeaponLevel >= FireDelayScale.Length)
+        {
+            return;
+        }
+
+        _killsAtLevel++;
+        if (_killsAtLevel >= KillsPerUpgrade[WeaponLevel - 1])
+        {
+            _killsAtLevel = 0;
+            SetWeaponLevel(WeaponLevel + 1);
+        }
+    }
+
+    /// <summary>
+    /// Taking a hit costs one weapon level and the progress towards the next one.
+    /// </summary>
+    private void DowngradeWeapon()
+    {
+        _killsAtLevel = 0;
+        if (WeaponLevel > 1)
+        {
+            SetWeaponLevel(WeaponLevel - 1);
+        }
+    }
+
     public override void CalculateHit(int amount)
     {
         //Remove heart from UI
@@ -136,6 +181,7 @@ public class Player : Ship
         base.CalculateHit(amount);
         CameraShake.Shake(0.25f, 0.25f);
         Sfx.Play("player_hit");
+        DowngradeWeapon();
         ScreenFx.Flash(new Color(1f, 0.1f, 0.1f), 0.4f);
         if (HitPoints == 1)
         {
