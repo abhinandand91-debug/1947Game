@@ -35,6 +35,16 @@ public class Laser : MonoBehaviour
 
     public void OnCollisionEnter(Collision collision)
     {
+        // Lasers pass through their own side, so multi-shots and boss fans are not destroyed by the shooter
+        if (!EnemyWeapon && collision.gameObject.tag == "Player")
+        {
+            return;
+        }
+        if (EnemyWeapon && collision.gameObject.tag == "Enemy")
+        {
+            return;
+        }
+
         if (!EnemyWeapon && collision.gameObject.tag == "Enemy")
         {
             collision.gameObject.GetComponent<Enemy>().CalculateHit(Damage);
