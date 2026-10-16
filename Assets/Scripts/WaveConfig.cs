@@ -17,6 +17,9 @@ public class WaveDefinition
     public float FireDelay;
     public Color Tint;
     public bool IsBoss;
+    public float ChaserChance;   // chance an enemy is a kamikaze chaser
+    public float StraferChance;  // chance an enemy is a fast side-to-side strafer
+    public float FormationChance; // chance a spawn is a whole formation
 }
 
 /// <summary>
@@ -53,6 +56,8 @@ public static class WaveConfig
                 break;
             case 1: // Medium
                 def.Name = "FIGHTERS";
+                def.StraferChance = 0.3f;
+                def.FormationChance = 0.2f;
                 def.KillsToAdvance = 10;
                 def.SpawnMin = 2.5f;
                 def.SpawnMax = 4f;
@@ -63,6 +68,9 @@ public static class WaveConfig
                 break;
             case 2: // Hard
                 def.Name = "ACES";
+                def.ChaserChance = 0.25f;
+                def.StraferChance = 0.25f;
+                def.FormationChance = 0.35f;
                 def.KillsToAdvance = 14;
                 def.SpawnMin = 2f;
                 def.SpawnMax = 3.5f;
@@ -91,6 +99,13 @@ public static class WaveConfig
         def.HitPoints += def.IsBoss ? 10 * round : round;
         def.Speed = Mathf.Min(8f, def.Speed + 0.3f * round);
         def.FireDelay *= fireScale;
+
+        // The difficulty chosen on the main menu
+        def.SpawnMin *= Difficulty.SpawnInterval;
+        def.SpawnMax *= Difficulty.SpawnInterval;
+        def.Speed = Mathf.Min(8f, def.Speed * Difficulty.EnemySpeed);
+        def.FireDelay *= Difficulty.FireDelay;
+        def.HitPoints += Difficulty.ExtraHitPoints;
         return def;
     }
 
