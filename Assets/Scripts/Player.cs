@@ -64,11 +64,13 @@ public class Player : Ship
         UserInterface.DecreasePlayerHealth();
         base.CalculateHit(amount);
         CameraShake.Shake(0.25f, 0.25f);
+        Sfx.Play("player_hit");
 
         if (HitPoints <= 0)
         {
             Explosion.Spawn(transform.position, new Color(0.4f, 0.7f, 1f), 2f);
             CameraShake.Shake(0.6f, 0.5f);
+            Sfx.Play("explosion_big");
             GameMngr.EndGame(); 
         }
     }
