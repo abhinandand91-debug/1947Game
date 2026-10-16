@@ -2,6 +2,7 @@
 // Created: 2020-04-03
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,10 +23,13 @@ public class UserInterfaceManager : MonoBehaviour
 
 
     private Text _bestText;
+    private GameOverScreen _gameOver;
 
     private void Awake()
     {
         BuildBestText();
+        ScreenFx.Font = ScoreText.font;
+        _gameOver = GameOverScreen.Create(ScoreText.font);
         _bestText.text = "Best: " + HighScore.Best;
     }
 
@@ -61,7 +65,22 @@ public class UserInterfaceManager : MonoBehaviour
         _bestText.text = newRecord
             ? "New best: " + finalScore + "!"
             : "Score: " + finalScore + "   Best: " + HighScore.Best;
-        EndGame();
+        GameManager.SetActive(false);
+        ScreenFx.SetPressure(false);
+        StartCoroutine(ShowGameOver(finalScore, newRecord));
+    }
+
+    /// <summary>
+    /// Waits a moment so the player's explosion can play, then shows the game over screen.
+    /// </summary>
+    private IEnumerator ShowGameOver(int score, bool newRecord)
+    {
+        yield return new WaitForSecondsRealtime(0.9f);
+
+        GameScreen.SetActive(false);
+        Cursor.visible = true;
+        Sfx.Play(newRecord ? "new_best" : "game_over");
+        _gameOver.Show(score, HighScore.Best, newRecord, Start_OnClick, EndGame);
     }
 
     public void AdjustScore(int amount)
