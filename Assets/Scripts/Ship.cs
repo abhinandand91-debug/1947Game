@@ -58,5 +58,6 @@ public class Ship : MonoBehaviour
     public virtual void CalculateHit(int amount)
     {
         HitPoints -= amount;
+        HitFlash.Play(gameObject);
     }
 }
