@@ -37,8 +37,33 @@ public class Ship : MonoBehaviour
     /// </summary>
     protected void ShootLaser()
     {
-        GameObject.Instantiate(LaserPrefab, transform.position + Vector3.forward * LaserDistanceForward + Vector3.right * LaserDistanceRight, Quaternion.Euler(LaserRotation));
+        FireLaser(0f, 0f);
 
+        StartCooldown();
+    }
+
+    /// <summary>
+    /// Creates one laser. Use several calls with different drift or offset values for spread and multi shots.
+    /// </summary>
+    /// <param name="drift">Sideways speed of the laser</param>
+    /// <param name="offsetX">Sideways offset from the gun position</param>
+    protected void FireLaser(float drift, float offsetX)
+    {
+        Vector3 position = transform.position + Vector3.forward * LaserDistanceForward + Vector3.right * (LaserDistanceRight + offsetX);
+        GameObject laser = (GameObject)GameObject.Instantiate(LaserPrefab, position, Quaternion.Euler(LaserRotation));
+
+        Laser component = laser.GetComponent<Laser>();
+        if (component != null)
+        {
+            component.Drift = drift;
+        }
+    }
+
+    /// <summary>
+    /// Disables firing until FireDelay has passed.
+    /// </summary>
+    protected void StartCooldown()
+    {
         Invoke("EnableShooting", FireDelay);
     }
 
