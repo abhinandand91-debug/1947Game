@@ -22,6 +22,8 @@ public class ScreenFx : MonoBehaviour
     private readonly Queue<Text> _popupPool = new Queue<Text>();
     private Image _flash;
     private Image _vignette;
+    private Image _bossBack;
+    private Image _bossFill;
     private Coroutine _flashRoutine;
     private Coroutine _pressureRoutine;
 
@@ -69,6 +71,50 @@ public class ScreenFx : MonoBehaviour
     }
 
     /// <summary>
+    /// Shows or hides the boss health bar at the top of the screen. Fraction is 0-1.
+    /// </summary>
+    public static void SetBossBar(float fraction, bool visible)
+    {
+        if (!visible && _instance == null)
+        {
+            return;
+        }
+        Instance.UpdateBossBar(fraction, visible);
+    }
+
+    private void BuildBossBar()
+    {
+        _bossBack = new GameObject("BossBar", typeof(RectTransform)).AddComponent<Image>();
+        _bossBack.transform.SetParent(transform, false);
+        _bossBack.color = new Color(0f, 0f, 0f, 0.65f);
+        _bossBack.raycastTarget = false;
+        _bossBack.rectTransform.anchorMin = new Vector2(0.25f, 0.925f);
+        _bossBack.rectTransform.anchorMax = new Vector2(0.75f, 0.955f);
+        _bossBack.rectTransform.offsetMin = Vector2.zero;
+        _bossBack.rectTransform.offsetMax = Vector2.zero;
+
+        _bossFill = new GameObject("Fill", typeof(RectTransform)).AddComponent<Image>();
+        _bossFill.transform.SetParent(_bossBack.transform, false);
+        _bossFill.color = new Color(0.9f, 0.2f, 0.3f);
+        _bossFill.raycastTarget = false;
+        _bossFill.rectTransform.anchorMin = Vector2.zero;
+        _bossFill.rectTransform.anchorMax = Vector2.one;
+        _bossFill.rectTransform.offsetMin = new Vector2(3f, 3f);
+        _bossFill.rectTransform.offsetMax = new Vector2(-3f, -3f);
+
+        _bossBack.gameObject.SetActive(false);
+    }
+
+    private void UpdateBossBar(float fraction, bool visible)
+    {
+        _bossBack.gameObject.SetActive(visible);
+        if (visible)
+        {
+            _bossFill.rectTransform.anchorMax = new Vector2(Mathf.Clamp01(fraction), 1f);
+        }
+    }
+
+    /// <summary>
     /// Shows a large centred message such as a wave announcement.
     /// </summary>
     public static void Banner(string text, Color color)
@@ -94,6 +140,7 @@ public class ScreenFx : MonoBehaviour
 
         _vignette = CreateFullScreenImage("Vignette", MakeVignetteSprite());
         _flash = CreateFullScreenImage("Flash", null);
+        BuildBossBar();
     }
 
     private Image CreateFullScreenImage(string imageName, Sprite sprite)
