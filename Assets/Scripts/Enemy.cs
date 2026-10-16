@@ -39,7 +39,10 @@ public class Enemy : Ship
         GameMngr = GameObject.FindObjectOfType<GameManager>();
 
         // Set destination for navigation
-        _navMeshAgent.SetDestination(_player.transform.position + Vector3.forward * _distanceToPlayer);
+        if (_navMeshAgent.isOnNavMesh)
+        {
+            _navMeshAgent.SetDestination(_player.transform.position + Vector3.forward * _distanceToPlayer);
+        }
         _navMeshAgent.speed = Speed;
 
         //Start navigating
@@ -72,7 +75,10 @@ public class Enemy : Ship
         Vector3 destination = _player.transform.position + Vector3.forward * _distanceToPlayer + Random.insideUnitSphere * _wander;
         destination.y = transform.position.y;
 
-        _navMeshAgent.SetDestination(destination);
+        if (_navMeshAgent.isOnNavMesh)
+        {
+            _navMeshAgent.SetDestination(destination);
+        }
 
         Invoke("GetNextPosition", .5f);
     }

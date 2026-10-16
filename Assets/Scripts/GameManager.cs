@@ -93,10 +93,12 @@ public class GameManager : MonoBehaviour
 
             // Snap onto the navigation mesh so every ship can move
             UnityEngine.AI.NavMeshHit hit;
-            if (UnityEngine.AI.NavMesh.SamplePosition(position, out hit, 3f, UnityEngine.AI.NavMesh.AllAreas))
+            if (!UnityEngine.AI.NavMesh.SamplePosition(position, out hit, 3f, UnityEngine.AI.NavMesh.AllAreas))
             {
-                position = new Vector3(hit.position.x, origin.y, hit.position.z);
+                continue; // too far from the play field, skip this ship
             }
+
+            position = new Vector3(hit.position.x, origin.y, hit.position.z);
             SpawnShip(prefab, position, stats, false);
         }
     }
