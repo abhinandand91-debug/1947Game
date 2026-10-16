@@ -154,6 +154,16 @@ SOUNDS = {
         lambda t: 0.5 * min(1.0, (0.9 - t) / 0.1),
         shape="saw",
     ),
+    # pickup collected: two quick bright notes
+    "pickup": lambda: mix(
+        (0.00, bell(1568.0, 0.35, 0.09, 0.8)),
+        (0.07, bell(2093.0, 0.4, 0.1, 0.8)),
+    ),
+    # shield absorbed a hit: metallic clang
+    "shield_block": lambda: mix(
+        (0.00, bell(520.0, 0.5, 0.15, 0.9)),
+        (0.00, noise(0.05, lambda t: 0.5 * E(-t / 0.015), lowpass=0.6, highpass=True)),
+    ),
 }
 
 
