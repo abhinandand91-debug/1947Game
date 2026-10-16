@@ -65,6 +65,11 @@ public class Player : Ship
         base.CalculateHit(amount);
         CameraShake.Shake(0.25f, 0.25f);
         Sfx.Play("player_hit");
+        ScreenFx.Flash(new Color(1f, 0.1f, 0.1f), 0.4f);
+        if (HitPoints == 1)
+        {
+            ScreenFx.SetPressure(true); // last life: pulse the screen edges red
+        }
 
         if (HitPoints <= 0)
         {
