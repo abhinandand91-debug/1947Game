@@ -9,10 +9,18 @@ public class Laser : MonoBehaviour
 
     public int Damage = 10;
     public bool EnemyWeapon;
+    public float Drift; // sideways speed, used for spread shots
+
+    void Start()
+    {
+        // Safety net so lasers that drift off the sides never pile up
+        Destroy(this.gameObject, 6f);
+    }
 
     // Update is called once per frame
     void Update()
     {
+        transform.position += Vector3.right * Drift * Time.deltaTime;
         if (EnemyWeapon)
         {
             transform.position = Vector3.Lerp(transform.position, transform.position -= Vector3.forward, 5f * Time.deltaTime);
