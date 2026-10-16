@@ -21,6 +21,49 @@ public class UserInterfaceManager : MonoBehaviour
     public GameObject[] HealthIcons;
 
 
+    private Text _bestText;
+
+    private void Awake()
+    {
+        BuildBestText();
+        _bestText.text = "Best: " + HighScore.Best;
+    }
+
+    /// <summary>
+    /// Creates the best score label on the main screen so no scene changes are needed.
+    /// </summary>
+    private void BuildBestText()
+    {
+        GameObject label = new GameObject("BestScoreText", typeof(RectTransform));
+        label.transform.SetParent(MainScreen.transform, false);
+
+        _bestText = label.AddComponent<Text>();
+        _bestText.font = ScoreText.font;
+        _bestText.fontSize = ScoreText.fontSize;
+        _bestText.alignment = TextAnchor.MiddleCenter;
+        _bestText.color = Color.white;
+
+        RectTransform rect = _bestText.rectTransform;
+        rect.anchorMin = new Vector2(0.5f, 0f);
+        rect.anchorMax = new Vector2(0.5f, 0f);
+        rect.pivot = new Vector2(0.5f, 0f);
+        rect.anchoredPosition = new Vector2(0f, 40f);
+        rect.sizeDelta = new Vector2(700f, 120f);
+    }
+
+    /// <summary>
+    /// Ends the game and shows the final score along with the best score.
+    /// </summary>
+    /// <param name="finalScore">Score of the run that just ended</param>
+    public void EndGame(int finalScore)
+    {
+        bool newRecord = HighScore.Submit(finalScore);
+        _bestText.text = newRecord
+            ? "New best: " + finalScore + "!"
+            : "Score: " + finalScore + "   Best: " + HighScore.Best;
+        EndGame();
+    }
+
     public void AdjustScore(int amount)
     {
         ScoreText.text = "Score: " + amount;
