@@ -30,8 +30,6 @@ public static class WaveConfig
 {
     public const int WavesPerRound = 4;
 
-    private static readonly int[] WeaponKillThresholds = { 0, 4, 10, 18, 28 };
-
     /// <summary>
     /// Returns the definition of the given wave (0 is the first wave).
     /// </summary>
@@ -115,21 +113,5 @@ public static class WaveConfig
     public static WaveDefinition Escort(int wave)
     {
         return Get(wave - wave % WavesPerRound);
-    }
-
-    /// <summary>
-    /// Player weapon level (1-5) earned after the given number of kills.
-    /// </summary>
-    public static int WeaponLevelForKills(int kills)
-    {
-        int level = 1;
-        for (int i = 1; i < WeaponKillThresholds.Length; i++)
-        {
-            if (kills >= WeaponKillThresholds[i])
-            {
-                level = i + 1;
-            }
-        }
-        return level;
     }
 }
