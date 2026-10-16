@@ -171,14 +171,14 @@ public class Enemy : Ship
             {
                 Pickup.TryDrop(transform.position);
             }
-            ScreenFx.Popup(transform.position, "+" + _points, new Color(1f, 0.85f, 0.3f), 1f);
             if (IsBoss)
             {
                 Explosion.Spawn(transform.position, new Color(0.85f, 0.55f, 1f), 3f);
                 CameraShake.Shake(0.5f, 0.5f);
                 Sfx.Play("explosion_big");
             }
-            GameMngr.IncrementScore(_points, IsBoss);
+            int awarded = GameMngr.IncrementScore(_points, IsBoss);
+            ScreenFx.Popup(transform.position, "+" + awarded, new Color(1f, 0.85f, 0.3f), IsBoss ? 1.6f : 1f);
             Destroy(this.gameObject);
         }
     }
