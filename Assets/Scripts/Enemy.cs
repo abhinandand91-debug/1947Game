@@ -70,6 +70,7 @@ public class Enemy : Ship
         {
             Explosion.Spawn(transform.position, new Color(1f, 0.6f, 0.2f), 1f);
             CameraShake.Shake(0.12f, 0.15f);
+            Sfx.Play("explosion_small");
             GameMngr.IncrementScore();
             Destroy(this.gameObject);
         }
