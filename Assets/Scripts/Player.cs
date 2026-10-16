@@ -63,9 +63,12 @@ public class Player : Ship
         //Remove heart from UI
         UserInterface.DecreasePlayerHealth();
         base.CalculateHit(amount);
+        CameraShake.Shake(0.25f, 0.25f);
 
         if (HitPoints <= 0)
         {
+            Explosion.Spawn(transform.position, new Color(0.4f, 0.7f, 1f), 2f);
+            CameraShake.Shake(0.6f, 0.5f);
             GameMngr.EndGame(); 
         }
     }
