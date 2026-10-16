@@ -21,6 +21,27 @@ public class GameManager : MonoBehaviour
     public List<GameObject> SpawnPoints = new List<GameObject>();
 
     private int _score;
+    private int _kills;
+    private int _waveKills;
+    private int _wave;
+    private bool _bossAlive;
+
+    /// <summary>
+    /// Shows the name of the current wave and warns when the boss arrives.
+    /// </summary>
+    private void AnnounceWave()
+    {
+        WaveDefinition wave = WaveConfig.Get(_wave);
+        if (wave.IsBoss)
+        {
+            ScreenFx.Banner("BOSS INCOMING!", new Color(1f, 0.4f, 0.4f));
+            Sfx.Play("boss_alarm");
+        }
+        else
+        {
+            ScreenFx.Banner("WAVE " + (_wave + 1) + ": " + wave.Name, Color.white);
+        }
+    }
 
     void Start()
     {
@@ -28,6 +49,15 @@ public class GameManager : MonoBehaviour
         Player.GetComponent<Player>().HitPoints = 3;
 
         _score = 0;
+        _kills = 0;
+        _waveKills = 0;
+        _wave = 0;
+        _bossAlive = false;
+
+        // Start() also runs from OnEnable, so make sure only one spawn loop is ever active
+        CancelInvoke();
+        Player.GetComponent<Player>().SetWeaponLevel(1);
+        AnnounceWave();
         if (SpawnEnemies)
         {
             SpawnEnemy();
@@ -50,9 +80,19 @@ public class GameManager : MonoBehaviour
         int enemy = Random.Range(0, EnemyPrefabs.Count);
         int spawnLocation = Random.Range(0, SpawnPoints.Count);
 
-        GameObject.Instantiate(EnemyPrefabs[enemy], SpawnPoints[spawnLocation].transform.position, Quaternion.identity);
+        WaveDefinition wave = WaveConfig.Get(_wave);
+        bool spawnBoss = wave.IsBoss && !_bossAlive;
+        WaveDefinition stats = spawnBoss ? wave : (wave.IsBoss ? WaveConfig.Escort(_wave) : wave);
+        _bossAlive |= spawnBoss;
 
-        Invoke("SpawnEnemy", Random.Range(3, 10));
+        GameObject spawned = (GameObject)GameObject.Instantiate(EnemyPrefabs[enemy], SpawnPoints[spawnLocation].transform.position, Quaternion.identity);
+        Enemy spawnedEnemy = spawned.GetComponent<Enemy>();
+        if (spawnedEnemy != null)
+        {
+            spawnedEnemy.ApplyTier(stats, spawnBoss);
+        }
+
+        Invoke("SpawnEnemy", Random.Range(wave.SpawnMin, wave.SpawnMax));
     }
 
 
@@ -75,6 +115,21 @@ public class GameManager : MonoBehaviour
         _score += points;
 
         UserInterface.AdjustScore(_score);
+
+        // Every kill can upgrade the player's gun and move the game on to the next wave
+        _kills++;
+        _waveKills++;
+        Player.GetComponent<Player>().SetWeaponLevel(WaveConfig.WeaponLevelForKills(_kills));
+
+        WaveDefinition current = WaveConfig.Get(_wave);
+        bool waveCleared = current.IsBoss ? wasBoss : _waveKills >= current.KillsToAdvance;
+        if (waveCleared)
+        {
+            _wave++;
+            _waveKills = 0;
+            _bossAlive = false;
+            AnnounceWave();
+        }
     }
 
     /// <summary>
