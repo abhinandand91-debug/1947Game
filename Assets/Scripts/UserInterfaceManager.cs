@@ -24,6 +24,7 @@ public class UserInterfaceManager : MonoBehaviour
 
     private Text _bestText;
     private GameOverScreen _gameOver;
+    private PauseMenu _pause;
     private readonly List<GameObject> _extraHearts = new List<GameObject>();
 
     private void Awake()
@@ -32,6 +33,8 @@ public class UserInterfaceManager : MonoBehaviour
         ScreenFx.Font = ScoreText.font;
         _gameOver = GameOverScreen.Create(ScoreText.font);
         DifficultySelector.Create(MainScreen.transform, ScoreText.font);
+        _pause = PauseMenu.Create(ScoreText.font, QuitToMenu);
+        MobileControls.Create(ScoreText.font, _pause.Toggle);
         _bestText.text = "Best: " + HighScore.Best;
     }
 
@@ -69,6 +72,7 @@ public class UserInterfaceManager : MonoBehaviour
             : "Score: " + finalScore + "   Best: " + HighScore.Best;
         GameManager.SetActive(false);
         ScreenFx.SetPressure(false);
+        MobileControls.SetVisible(false);
         StartCoroutine(ShowGameOver(finalScore, newRecord));
     }
 
@@ -141,6 +145,31 @@ public class UserInterfaceManager : MonoBehaviour
         _extraHearts.Clear();
     }
 
+    /// <summary>
+    /// Leaves a run from the pause menu: clears the field and returns to the main screen.
+    /// </summary>
+    private void QuitToMenu()
+    {
+        foreach (GameObject enemy in GameObject.FindGameObjectsWithTag("Enemy"))
+        {
+            Destroy(enemy);
+        }
+        foreach (Laser laser in FindObjectsOfType<Laser>())
+        {
+            Destroy(laser.gameObject);
+        }
+        foreach (Pickup pickup in FindObjectsOfType<Pickup>())
+        {
+            Destroy(pickup.gameObject);
+        }
+
+        GameManager.GetComponent<GameManager>().TogglePlayer(false);
+        ScreenFx.SetPressure(false);
+        ScreenFx.SetCombo(1, 0f);
+        MobileControls.SetVisible(false);
+        EndGame();
+    }
+
     public void AdjustScore(int amount)
     {
         ScoreText.text = "Score: " + amount;
@@ -180,6 +209,7 @@ public class UserInterfaceManager : MonoBehaviour
         GameScreen.SetActive(true);
 
         Cursor.visible = false;
+        MobileControls.SetVisible(true);
     }
 
     /// <summary>
