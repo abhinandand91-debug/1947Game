@@ -70,9 +70,9 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// Increments the score and calls the UI for display.
     /// </summary>
-    public void IncrementScore()
+    public void IncrementScore(int points = 1, bool wasBoss = false)
     {
-        _score++;
+        _score += points;
 
         UserInterface.AdjustScore(_score);
     }
