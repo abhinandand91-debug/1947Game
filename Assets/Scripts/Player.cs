@@ -18,12 +18,12 @@ public class Player : Ship
     void Update()
     {
 	
-        if (Input.GetAxis("Horizontal") < 0) //Move left
+        if (MobileInput.Horizontal(transform.position) < 0) //Move left
         {
             transform.position = Vector3.Lerp(transform.position, transform.position + Vector3.left, Speed * Time.deltaTime);
             EnvironmentMngr.SetMovingHorizontalMultiplyer(-BackgroundMultiplyer);
         }
-        else if (Input.GetAxis("Horizontal") > 0) //Move Right
+        else if (MobileInput.Horizontal(transform.position) > 0) //Move Right
         {
             transform.position = Vector3.Lerp(transform.position, transform.position - Vector3.left, Speed * Time.deltaTime);
             EnvironmentMngr.SetMovingHorizontalMultiplyer(BackgroundMultiplyer);
@@ -33,13 +33,13 @@ public class Player : Ship
             EnvironmentMngr.SetMovingHorizontalMultiplyer(0);
         }
 
-        if (Input.GetAxis("Vertical") > 0) //Move up
+        if (MobileInput.Vertical(transform.position) > 0) //Move up
         {
             transform.position = Vector3.Lerp(transform.position, transform.position + Vector3.forward, Speed * Time.deltaTime);
             EnvironmentMngr.SetMovingVerticallyMultiplyer(BackgroundMultiplyer);
 
         }
-        else if (Input.GetAxis("Vertical") < 0) //Move down
+        else if (MobileInput.Vertical(transform.position) < 0) //Move down
         {
             transform.position = Vector3.Lerp(transform.position, transform.position - Vector3.forward, Speed * Time.deltaTime);
             EnvironmentMngr.SetMovingVerticallyMultiplyer(-BackgroundMultiplyer);
@@ -49,7 +49,7 @@ public class Player : Ship
             EnvironmentMngr.SetMovingVerticallyMultiplyer(0);
         }
 
-        if (Input.GetAxis("Shoot") > 0 && CanShoot)
+        if (MobileInput.Shoot() && CanShoot)
         {
             CanShoot = false;
 
