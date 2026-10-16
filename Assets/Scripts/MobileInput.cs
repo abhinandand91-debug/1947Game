@@ -2,6 +2,7 @@
 // Created: 2026-10-16
 
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 /// <summary>
 /// Combines keyboard input with touch input so the ship can be flown on desktop and mobile.
@@ -26,7 +27,34 @@ public static class MobileInput
 
     public static bool Shoot()
     {
-        return Input.GetAxis("Shoot") > 0 || Input.touchCount > 0;
+        if (Input.GetAxis("Shoot") > 0)
+        {
+            return true;
+        }
+
+        // Touch: fire while the screen is held (auto-fire) or while the on-screen fire button is held
+        Touch touch;
+        return GameSettings.AutoFire ? TryGetGameTouch(out touch) : MobileControls.FireHeld;
+    }
+
+    /// <summary>
+    /// Finds a finger that is on the play field rather than on a UI button.
+    /// </summary>
+    private static bool TryGetGameTouch(out Touch result)
+    {
+        for (int i = 0; i < Input.touchCount; i++)
+        {
+            Touch touch = Input.GetTouch(i);
+            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject(touch.fingerId))
+            {
+                continue;
+            }
+            result = touch;
+            return true;
+        }
+
+        result = default(Touch);
+        return false;
     }
 
     /// <summary>
@@ -35,12 +63,13 @@ public static class MobileInput
     private static Vector3 TouchDirection(Vector3 shipPosition)
     {
         Camera cam = Camera.main;
-        if (Input.touchCount == 0 || cam == null)
+        Touch touch;
+        if (cam == null || !TryGetGameTouch(out touch))
         {
             return Vector3.zero;
         }
 
-        Vector2 screenPoint = Input.GetTouch(0).position + Vector2.up * (Screen.height * FingerOffset);
+        Vector2 screenPoint = touch.position + Vector2.up * (Screen.height * FingerOffset);
         Ray ray = cam.ScreenPointToRay(screenPoint);
         Plane playField = new Plane(Vector3.up, shipPosition);
 
