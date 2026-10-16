@@ -17,6 +17,7 @@ public class Player : Ship
     // Update is called once per frame
     void Update()
     {
+        UpdateShield();
 	
         if (MobileInput.Horizontal(transform.position) < 0) //Move left
         {
@@ -75,6 +76,11 @@ public class Player : Ship
         // A pending cooldown is cancelled when the player is disabled, so reset for every new run
         transform.position = _startPosition;
         CanShoot = true;
+        _shieldTime = 0f;
+        if (_shieldAura != null)
+        {
+            _shieldAura.SetActive(false);
+        }
     }
 
     /// <summary>
@@ -139,6 +145,112 @@ public class Player : Ship
         StartCooldown();
     }
 
+    public int MaxHitPoints { get; private set; }
+
+    private float _shieldTime;
+    private GameObject _shieldAura;
+
+    /// <summary>
+    /// Restores one hit point. Returns false when already at full health.
+    /// </summary>
+    public bool Heal()
+    {
+        if (HitPoints >= MaxHitPoints)
+        {
+            return false;
+        }
+
+        HitPoints++;
+        if (HitPoints > 1)
+        {
+            ScreenFx.SetPressure(false);
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// Adds a heart (up to five) and refills health. Returns true when a heart was added.
+    /// </summary>
+    public bool AddMaxHeart()
+    {
+        int before = MaxHitPoints;
+        MaxHitPoints = Mathf.Min(MaxHitPoints + 1, 5);
+        HitPoints = MaxHitPoints;
+        ScreenFx.SetPressure(false);
+        return MaxHitPoints > before;
+    }
+
+    /// <summary>
+    /// Back to the standard three hearts for a new run.
+    /// </summary>
+    public void ResetHearts()
+    {
+        MaxHitPoints = 3;
+        HitPoints = 3;
+    }
+
+    /// <summary>
+    /// Blocks the next hit for the given number of seconds.
+    /// </summary>
+    public void ActivateShield(float seconds)
+    {
+        if (_shieldAura == null)
+        {
+            BuildShieldAura();
+        }
+
+        _shieldTime = seconds;
+        _shieldAura.SetActive(true);
+    }
+
+    private void BuildShieldAura()
+    {
+        _shieldAura = new GameObject("ShieldAura");
+        _shieldAura.transform.SetParent(transform, false);
+
+        SpriteRenderer sprite = _shieldAura.AddComponent<SpriteRenderer>();
+        sprite.sprite = PickupSprites.Ring;
+        sprite.sortingOrder = 6;
+
+        Camera cam = Camera.main;
+        if (cam != null)
+        {
+            _shieldAura.transform.rotation = cam.transform.rotation;
+        }
+
+        // Keep the aura about 1.6 world units wide whatever the ship's own scale is
+        float parentScale = Mathf.Max(0.01f, transform.lossyScale.x);
+        _shieldAura.transform.localScale = Vector3.one * (1.6f / parentScale);
+    }
+
+    private void UpdateShield()
+    {
+        if (_shieldTime <= 0f)
+        {
+            return;
+        }
+
+        _shieldTime -= Time.deltaTime;
+        if (_shieldTime <= 0f)
+        {
+            _shieldAura.SetActive(false);
+            return;
+        }
+
+        // Blink during the last two seconds as a warning
+        _shieldAura.SetActive(_shieldTime > 2f || Mathf.Repeat(_shieldTime, 0.3f) > 0.15f);
+    }
+
+    private void AbsorbHit()
+    {
+        _shieldTime = 0f;
+        _shieldAura.SetActive(false);
+        Sfx.Play("shield_block");
+        ScreenFx.Flash(new Color(0.4f, 0.8f, 1f), 0.3f);
+        CameraShake.Shake(0.15f, 0.15f);
+        ScreenFx.Popup(transform.position, "BLOCKED", new Color(0.5f, 0.85f, 1f), 1f);
+    }
+
     // Kills needed at each level to reach the next one (level 1 to 2, 2 to 3, ...)
     private static readonly int[] KillsPerUpgrade = { 4, 6, 8, 10 };
 
@@ -177,6 +289,12 @@ public class Player : Ship
     public override void CalculateHit(int amount)
     {
         //Remove heart from UI
+        if (_shieldTime > 0f)
+        {
+            AbsorbHit();
+            return;
+        }
+
         UserInterface.DecreasePlayerHealth();
         base.CalculateHit(amount);
         CameraShake.Shake(0.25f, 0.25f);
