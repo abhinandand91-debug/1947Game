@@ -13,6 +13,9 @@ public class Enemy : Ship
     private UnityEngine.AI.NavMeshAgent _navMeshAgent;
     private GameObject _player;
     private float _distanceToPlayer = 4f;
+    private int _points = 1;
+
+    public bool IsBoss { get; private set; }
 
     // Use this for initialization
     void Start()
@@ -45,7 +48,7 @@ public class Enemy : Ship
         {
             CanShoot = false;
 
-            ShootLaser();
+            Fire();
         }
     }
 
@@ -62,6 +65,48 @@ public class Enemy : Ship
         Invoke("GetNextPosition", .5f);
     }
 
+    /// <summary>
+    /// Applies the stats of the current wave. Call right after spawning, before the first frame.
+    /// </summary>
+    public void ApplyTier(WaveDefinition wave, bool boss)
+    {
+        HitPoints = wave.HitPoints;
+        Speed = wave.Speed;
+        FireDelay = wave.FireDelay;
+        IsBoss = boss;
+
+        if (boss)
+        {
+            _points = 10;
+            _distanceToPlayer = 6f;
+            transform.localScale *= 2.2f;
+        }
+
+        foreach (SpriteRenderer sprite in GetComponentsInChildren<SpriteRenderer>())
+        {
+            sprite.color = wave.Tint;
+        }
+    }
+
+    /// <summary>
+    /// Regular enemies fire one laser; the boss fires a five-way fan.
+    /// </summary>
+    private void Fire()
+    {
+        if (!IsBoss)
+        {
+            ShootLaser();
+            return;
+        }
+
+        float[] drifts = { -3f, -1.5f, 0f, 1.5f, 3f };
+        foreach (float drift in drifts)
+        {
+            FireLaser(drift, drift * 0.1f);
+        }
+        StartCooldown();
+    }
+
     public override void CalculateHit(int amount)
     {
         base.CalculateHit(amount);
@@ -71,8 +116,14 @@ public class Enemy : Ship
             Explosion.Spawn(transform.position, new Color(1f, 0.6f, 0.2f), 1f);
             CameraShake.Shake(0.12f, 0.15f);
             Sfx.Play("explosion_small");
-            ScreenFx.Popup(transform.position, "+1", new Color(1f, 0.85f, 0.3f), 1f);
-            GameMngr.IncrementScore();
+            ScreenFx.Popup(transform.position, "+" + _points, new Color(1f, 0.85f, 0.3f), 1f);
+            if (IsBoss)
+            {
+                Explosion.Spawn(transform.position, new Color(0.85f, 0.55f, 1f), 3f);
+                CameraShake.Shake(0.5f, 0.5f);
+                Sfx.Play("explosion_big");
+            }
+            GameMngr.IncrementScore(_points, IsBoss);
             Destroy(this.gameObject);
         }
     }
