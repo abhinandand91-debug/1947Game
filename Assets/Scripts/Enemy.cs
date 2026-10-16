@@ -4,6 +4,13 @@
 using UnityEngine;
 using System.Collections;
 
+public enum EnemyType
+{
+    Normal,
+    Strafer, // fast, shoots more often and roams wide
+    Chaser   // does not shoot, rams the player
+}
+
 /// <summary>
 /// Handles enemy AI specific behaviors such as moving, shooting and taking damage
 /// </summary>
@@ -14,6 +21,8 @@ public class Enemy : Ship
     private GameObject _player;
     private float _distanceToPlayer = 4f;
     private int _points = 1;
+    private EnemyType _type = EnemyType.Normal;
+    private float _wander = 1f;
     private int _maxHitPoints;
     private bool _enraged;
     private int _shotCount;
@@ -60,7 +69,7 @@ public class Enemy : Ship
     /// </summary>
     private void GetNextPosition()
     {
-        Vector3 destination = _player.transform.position + Vector3.forward * _distanceToPlayer + Random.insideUnitSphere * 1;
+        Vector3 destination = _player.transform.position + Vector3.forward * _distanceToPlayer + Random.insideUnitSphere * _wander;
         destination.y = transform.position.y;
 
         _navMeshAgent.SetDestination(destination);
@@ -91,6 +100,67 @@ public class Enemy : Ship
         {
             sprite.color = wave.Tint;
         }
+
+        if (!boss)
+        {
+            float roll = Random.value;
+            if (roll < wave.ChaserChance)
+            {
+                MakeChaser(wave);
+            }
+            else if (roll < wave.ChaserChance + wave.StraferChance)
+            {
+                MakeStrafer();
+            }
+        }
+    }
+
+    private void MakeChaser(WaveDefinition wave)
+    {
+        _type = EnemyType.Chaser;
+        HitPoints = 1;
+        Speed = wave.Speed * 1.6f;
+        _distanceToPlayer = 0f;
+        _wander = 0f;
+        SetTint(new Color(1f, 0.45f, 0.7f));
+    }
+
+    private void MakeStrafer()
+    {
+        _type = EnemyType.Strafer;
+        FireDelay *= 0.7f;
+        Speed *= 1.15f;
+        _wander = 4f;
+        SetTint(new Color(0.6f, 0.8f, 1f));
+    }
+
+    private void SetTint(Color color)
+    {
+        foreach (SpriteRenderer sprite in GetComponentsInChildren<SpriteRenderer>())
+        {
+            sprite.color = color;
+        }
+    }
+
+    /// <summary>
+    /// Chasers crash into the player: it costs the player a heart and destroys the chaser.
+    /// </summary>
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (_type != EnemyType.Chaser || !collision.gameObject.CompareTag("Player"))
+        {
+            return;
+        }
+
+        Player player = collision.gameObject.GetComponent<Player>();
+        if (player != null)
+        {
+            player.CalculateHit(1);
+        }
+
+        Explosion.Spawn(transform.position, new Color(1f, 0.45f, 0.7f), 1f);
+        Sfx.Play("explosion_small");
+        Destroy(gameObject);
     }
 
     /// <summary>
@@ -98,6 +168,11 @@ public class Enemy : Ship
     /// </summary>
     private void Fire()
     {
+        if (_type == EnemyType.Chaser)
+        {
+            return; // chasers only ram
+        }
+
         if (!IsBoss)
         {
             ShootLaser();
