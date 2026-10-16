@@ -300,6 +300,12 @@ public class Player : Ship
         CameraShake.Shake(0.25f, 0.25f);
         Sfx.Play("player_hit");
         DowngradeWeapon();
+#if UNITY_ANDROID || UNITY_IOS
+        if (GameSettings.Vibration)
+        {
+            Handheld.Vibrate();
+        }
+#endif
         ScreenFx.Flash(new Color(1f, 0.1f, 0.1f), 0.4f);
         if (HitPoints == 1)
         {
