@@ -30,6 +30,7 @@ public class UserInterfaceManager : MonoBehaviour
         BuildBestText();
         ScreenFx.Font = ScoreText.font;
         _gameOver = GameOverScreen.Create(ScoreText.font);
+        DifficultySelector.Create(MainScreen.transform, ScoreText.font);
         _bestText.text = "Best: " + HighScore.Best;
     }
 
