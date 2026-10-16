@@ -25,6 +25,12 @@ public class GameManager : MonoBehaviour
     private int _waveKills;
     private int _wave;
     private bool _bossAlive;
+    private int _combo;
+    private float _lastKillTime;
+
+    private const float ComboWindow = 2.5f; // seconds allowed between kills to keep a combo
+    private const int KillsPerLevel = 3;    // kills in a combo for each extra multiplier
+    private const int MaxMultiplier = 5;
 
     /// <summary>
     /// Shows the name of the current wave and warns when the boss arrives.
@@ -43,6 +49,23 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    void Update()
+    {
+        if (_combo == 0)
+        {
+            return;
+        }
+
+        float remaining = 1f - (Time.time - _lastKillTime) / ComboWindow;
+        if (remaining <= 0f)
+        {
+            _combo = 0;
+            ScreenFx.SetCombo(1, 0f);
+            return;
+        }
+        ScreenFx.SetCombo(Mathf.Min(MaxMultiplier, 1 + _combo / KillsPerLevel), remaining);
+    }
+
     void Start()
     {
         TogglePlayer(true);
@@ -52,6 +75,8 @@ public class GameManager : MonoBehaviour
         _kills = 0;
         _waveKills = 0;
         _wave = 0;
+        _combo = 0;
+        ScreenFx.SetCombo(1, 0f);
         _bossAlive = false;
 
         // Start() also runs from OnEnable, so make sure only one spawn loop is ever active
@@ -110,8 +135,14 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// Increments the score and calls the UI for display.
     /// </summary>
-    public void IncrementScore(int points = 1, bool wasBoss = false)
+    public int IncrementScore(int points = 1, bool wasBoss = false)
     {
+        // Kills in quick succession build a combo that multiplies the points
+        _combo = (Time.time - _lastKillTime <= ComboWindow) ? _combo + 1 : 1;
+        _lastKillTime = Time.time;
+        int multiplier = Mathf.Min(MaxMultiplier, 1 + _combo / KillsPerLevel);
+        points = Mathf.RoundToInt(points * multiplier * Difficulty.ScoreMultiplier);
+
         _score += points;
 
         UserInterface.AdjustScore(_score);
@@ -130,6 +161,8 @@ public class GameManager : MonoBehaviour
             _bossAlive = false;
             AnnounceWave();
         }
+
+        return points;
     }
 
     /// <summary>
@@ -138,6 +171,7 @@ public class GameManager : MonoBehaviour
     public void EndGame()
     {
         TogglePlayer(false);
+        ScreenFx.SetCombo(1, 0f);
 
         CancelInvoke();
         foreach (GameObject enemy in GameObject.FindGameObjectsWithTag("Enemy"))
