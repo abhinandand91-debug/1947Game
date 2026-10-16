@@ -14,6 +14,9 @@ public class Enemy : Ship
     private GameObject _player;
     private float _distanceToPlayer = 4f;
     private int _points = 1;
+    private int _maxHitPoints;
+    private bool _enraged;
+    private int _shotCount;
 
     public bool IsBoss { get; private set; }
 
@@ -74,10 +77,12 @@ public class Enemy : Ship
         Speed = wave.Speed;
         FireDelay = wave.FireDelay;
         IsBoss = boss;
+        _maxHitPoints = HitPoints;
 
         if (boss)
         {
             _points = 10;
+            ScreenFx.SetBossBar(1f, true);
             _distanceToPlayer = 6f;
             transform.localScale *= 2.2f;
         }
@@ -99,6 +104,15 @@ public class Enemy : Ship
             return;
         }
 
+        if (_enraged)
+        {
+            // Phase two: a fast stream of lasers that sweeps from side to side
+            _shotCount++;
+            FireLaser(Mathf.Sin(_shotCount * 0.5f) * 4f, 0f);
+            StartCooldown();
+            return;
+        }
+
         float[] drifts = { -3f, -1.5f, 0f, 1.5f, 3f };
         foreach (float drift in drifts)
         {
@@ -107,9 +121,46 @@ public class Enemy : Ship
         StartCooldown();
     }
 
+    /// <summary>
+    /// The boss enters its second phase at half health: faster movement and a sweeping barrage.
+    /// </summary>
+    private void Enrage()
+    {
+        _enraged = true;
+        FireDelay = 0.22f;
+        Speed *= 1.3f;
+        if (_navMeshAgent != null)
+        {
+            _navMeshAgent.speed = Speed;
+        }
+
+        ScreenFx.Banner("ENRAGED!", new Color(1f, 0.3f, 0.3f));
+        ScreenFx.Flash(new Color(1f, 0.1f, 0.1f), 0.4f);
+        CameraShake.Shake(0.4f, 0.4f);
+        Sfx.Play("boss_alarm");
+    }
+
+    private void OnDestroy()
+    {
+        // Covers every way a boss can disappear, including the run ending
+        if (IsBoss)
+        {
+            ScreenFx.SetBossBar(0f, false);
+        }
+    }
+
     public override void CalculateHit(int amount)
     {
         base.CalculateHit(amount);
+
+        if (IsBoss)
+        {
+            ScreenFx.SetBossBar((float)HitPoints / _maxHitPoints, HitPoints > 0);
+            if (!_enraged && HitPoints > 0 && HitPoints * 2 <= _maxHitPoints)
+            {
+                Enrage();
+            }
+        }
 
         if (HitPoints <= 0)
         {
