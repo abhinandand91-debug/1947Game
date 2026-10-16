@@ -66,6 +66,41 @@ public class GameManager : MonoBehaviour
         ScreenFx.SetCombo(Mathf.Min(MaxMultiplier, 1 + _combo / KillsPerLevel), remaining);
     }
 
+    private void SpawnShip(GameObject prefab, Vector3 position, WaveDefinition stats, bool boss)
+    {
+        GameObject spawned = (GameObject)GameObject.Instantiate(prefab, position, Quaternion.identity);
+        Enemy spawnedEnemy = spawned.GetComponent<Enemy>();
+        if (spawnedEnemy != null)
+        {
+            spawnedEnemy.ApplyTier(stats, boss);
+        }
+    }
+
+    /// <summary>
+    /// Spawns a V of three or a line of four ships of the same kind.
+    /// </summary>
+    private void SpawnFormation(Vector3 origin, WaveDefinition stats)
+    {
+        // Offsets are (sideways, behind) in world units
+        Vector2[] offsets = Random.value < 0.5f
+            ? new Vector2[] { new Vector2(0f, 0f), new Vector2(-1.3f, 1f), new Vector2(1.3f, 1f) }
+            : new Vector2[] { new Vector2(-2.4f, 0f), new Vector2(-0.8f, 0f), new Vector2(0.8f, 0f), new Vector2(2.4f, 0f) };
+
+        GameObject prefab = EnemyPrefabs[Random.Range(0, EnemyPrefabs.Count)];
+        foreach (Vector2 offset in offsets)
+        {
+            Vector3 position = origin + Vector3.right * offset.x + Vector3.forward * offset.y;
+
+            // Snap onto the navigation mesh so every ship can move
+            UnityEngine.AI.NavMeshHit hit;
+            if (UnityEngine.AI.NavMesh.SamplePosition(position, out hit, 3f, UnityEngine.AI.NavMesh.AllAreas))
+            {
+                position = new Vector3(hit.position.x, origin.y, hit.position.z);
+            }
+            SpawnShip(prefab, position, stats, false);
+        }
+    }
+
     void Start()
     {
         TogglePlayer(true);
@@ -110,11 +145,14 @@ public class GameManager : MonoBehaviour
         WaveDefinition stats = spawnBoss ? wave : (wave.IsBoss ? WaveConfig.Escort(_wave) : wave);
         _bossAlive |= spawnBoss;
 
-        GameObject spawned = (GameObject)GameObject.Instantiate(EnemyPrefabs[enemy], SpawnPoints[spawnLocation].transform.position, Quaternion.identity);
-        Enemy spawnedEnemy = spawned.GetComponent<Enemy>();
-        if (spawnedEnemy != null)
+        Vector3 origin = SpawnPoints[spawnLocation].transform.position;
+        if (!wave.IsBoss && Random.value < wave.FormationChance)
         {
-            spawnedEnemy.ApplyTier(stats, spawnBoss);
+            SpawnFormation(origin, stats);
+        }
+        else
+        {
+            SpawnShip(EnemyPrefabs[enemy], origin, stats, spawnBoss);
         }
 
         Invoke("SpawnEnemy", Random.Range(wave.SpawnMin, wave.SpawnMax));
