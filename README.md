@@ -11,6 +11,11 @@ Pilot your ship, dodge meteors, shoot down enemy ships and survive as long as yo
 ## Opening the project
 Open the project folder with Unity 2018.3.5f1 (or newer) and load `Assets/Scenes/MainScene.unity`.
 
+## Features
+- Screen shake, hit flash, particle explosions and floating score popups
+- Synthesised sound effects (`python3 Tools/GenerateSfx.py` regenerates them)
+- Saved best score and a game over screen with Retry
+
 ## Controls
 | Platform | Move | Shoot |
 |----------|------|-------|
