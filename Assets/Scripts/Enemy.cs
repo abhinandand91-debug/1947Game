@@ -116,6 +116,10 @@ public class Enemy : Ship
             Explosion.Spawn(transform.position, new Color(1f, 0.6f, 0.2f), 1f);
             CameraShake.Shake(0.12f, 0.15f);
             Sfx.Play("explosion_small");
+            if (!IsBoss)
+            {
+                Pickup.TryDrop(transform.position);
+            }
             ScreenFx.Popup(transform.position, "+" + _points, new Color(1f, 0.85f, 0.3f), 1f);
             if (IsBoss)
             {
