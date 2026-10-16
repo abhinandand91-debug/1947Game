@@ -15,6 +15,8 @@ Open the project folder with Unity 2018.3.5f1 (or newer) and load `Assets/Scenes
 - Screen shake, hit flash, particle explosions and floating score popups
 - Synthesised sound effects (`python3 Tools/GenerateSfx.py` regenerates them)
 - Saved best score and a game over screen with Retry
+- Difficulty waves: Rookies (easy), Fighters (medium), Aces (hard), then a Boss, repeating tougher each round
+- The player's gun upgrades as enemies are destroyed: single, fast, double, triple spread, five-way
 
 ## Controls
 | Platform | Move | Shoot |
