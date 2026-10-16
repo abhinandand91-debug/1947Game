@@ -68,6 +68,24 @@ public class ScreenFx : MonoBehaviour
         Instance.StartPressure(on);
     }
 
+    /// <summary>
+    /// Shows a large centred message such as a wave announcement.
+    /// </summary>
+    public static void Banner(string text, Color color)
+    {
+        Instance.StartBanner(text, color);
+    }
+
+    private void StartBanner(string text, Color color)
+    {
+        Text label = _popupPool.Count > 0 ? _popupPool.Dequeue() : CreatePopupLabel();
+        label.gameObject.SetActive(true);
+        label.text = text;
+        label.color = color;
+        label.rectTransform.position = new Vector3(Screen.width * 0.5f, Screen.height * 0.72f, 0f);
+        StartCoroutine(PopupRoutine(label, color, 1.8f, 1.6f, 0f));
+    }
+
     private void Build()
     {
         Canvas canvas = gameObject.AddComponent<Canvas>();
@@ -181,7 +199,7 @@ public class ScreenFx : MonoBehaviour
         label.text = text;
         label.color = color;
         label.rectTransform.position = cam.WorldToScreenPoint(worldPosition);
-        StartCoroutine(PopupRoutine(label, color, scale));
+        StartCoroutine(PopupRoutine(label, color, scale, 0.8f, Screen.height * 0.1f));
     }
 
     private Text CreatePopupLabel()
@@ -200,12 +218,10 @@ public class ScreenFx : MonoBehaviour
         return label;
     }
 
-    private IEnumerator PopupRoutine(Text label, Color color, float scale)
+    private IEnumerator PopupRoutine(Text label, Color color, float scale, float duration, float rise)
     {
-        const float duration = 0.8f;
         RectTransform rect = label.rectTransform;
         Vector3 start = rect.position;
-        float rise = Screen.height * 0.1f;
 
         for (float t = 0f; t < duration; t += Time.unscaledDeltaTime)
         {
