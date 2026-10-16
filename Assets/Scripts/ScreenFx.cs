@@ -24,6 +24,10 @@ public class ScreenFx : MonoBehaviour
     private Image _vignette;
     private Image _bossBack;
     private Image _bossFill;
+    private Text _comboText;
+    private Image _comboBack;
+    private Image _comboFill;
+    private int _shownMultiplier;
     private Coroutine _flashRoutine;
     private Coroutine _pressureRoutine;
 
@@ -68,6 +72,69 @@ public class ScreenFx : MonoBehaviour
             return;
         }
         Instance.StartPressure(on);
+    }
+
+    /// <summary>
+    /// Shows the combo multiplier and how much time is left to keep it alive. Multipliers of 1 or less hide it.
+    /// </summary>
+    public static void SetCombo(int multiplier, float timeFraction)
+    {
+        if (multiplier <= 1 && _instance == null)
+        {
+            return;
+        }
+        Instance.UpdateCombo(multiplier, timeFraction);
+    }
+
+    private void BuildComboHud()
+    {
+        _comboText = CreatePopupLabel();
+        _comboText.name = "ComboText";
+        _comboText.alignment = TextAnchor.MiddleLeft;
+        _comboText.color = new Color(1f, 0.85f, 0.3f);
+        _comboText.rectTransform.anchorMin = new Vector2(0.02f, 0.80f);
+        _comboText.rectTransform.anchorMax = new Vector2(0.32f, 0.88f);
+        _comboText.rectTransform.offsetMin = Vector2.zero;
+        _comboText.rectTransform.offsetMax = Vector2.zero;
+
+        _comboBack = new GameObject("ComboBar", typeof(RectTransform)).AddComponent<Image>();
+        _comboBack.transform.SetParent(transform, false);
+        _comboBack.color = new Color(0f, 0f, 0f, 0.6f);
+        _comboBack.raycastTarget = false;
+        _comboBack.rectTransform.anchorMin = new Vector2(0.02f, 0.785f);
+        _comboBack.rectTransform.anchorMax = new Vector2(0.28f, 0.8f);
+        _comboBack.rectTransform.offsetMin = Vector2.zero;
+        _comboBack.rectTransform.offsetMax = Vector2.zero;
+
+        _comboFill = new GameObject("Fill", typeof(RectTransform)).AddComponent<Image>();
+        _comboFill.transform.SetParent(_comboBack.transform, false);
+        _comboFill.color = new Color(1f, 0.6f, 0.15f);
+        _comboFill.raycastTarget = false;
+        _comboFill.rectTransform.anchorMin = Vector2.zero;
+        _comboFill.rectTransform.anchorMax = Vector2.one;
+        _comboFill.rectTransform.offsetMin = new Vector2(2f, 2f);
+        _comboFill.rectTransform.offsetMax = new Vector2(-2f, -2f);
+
+        _comboText.gameObject.SetActive(false);
+        _comboBack.gameObject.SetActive(false);
+    }
+
+    private void UpdateCombo(int multiplier, float timeFraction)
+    {
+        bool show = multiplier > 1;
+        _comboText.gameObject.SetActive(show);
+        _comboBack.gameObject.SetActive(show);
+        if (!show)
+        {
+            return;
+        }
+
+        if (multiplier != _shownMultiplier)
+        {
+            _shownMultiplier = multiplier;
+            _comboText.text = "COMBO x" + multiplier;
+        }
+        _comboFill.rectTransform.anchorMax = new Vector2(Mathf.Clamp01(timeFraction), 1f);
     }
 
     /// <summary>
@@ -141,6 +208,7 @@ public class ScreenFx : MonoBehaviour
         _vignette = CreateFullScreenImage("Vignette", MakeVignetteSprite());
         _flash = CreateFullScreenImage("Flash", null);
         BuildBossBar();
+        BuildComboHud();
     }
 
     private Image CreateFullScreenImage(string imageName, Sprite sprite)
