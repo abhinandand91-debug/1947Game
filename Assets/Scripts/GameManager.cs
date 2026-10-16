@@ -101,10 +101,24 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Beating a boss refills health and adds a bonus heart (up to five).
+    /// </summary>
+    private void RewardBossKill()
+    {
+        var player = Player.GetComponent<Player>();
+        if (player.AddMaxHeart())
+        {
+            UserInterface.AddHeart();
+        }
+        UserInterface.RestoreAllHearts();
+        ScreenFx.Popup(player.transform.position, "FULL HEALTH + HEART!", new Color(1f, 0.4f, 0.5f), 1.2f);
+    }
+
     void Start()
     {
         TogglePlayer(true);
-        Player.GetComponent<Player>().HitPoints = 3;
+        Player.GetComponent<Player>().ResetHearts();
 
         _score = 0;
         _kills = 0;
@@ -194,6 +208,11 @@ public class GameManager : MonoBehaviour
         bool waveCleared = current.IsBoss ? wasBoss : _waveKills >= current.KillsToAdvance;
         if (waveCleared)
         {
+            if (wasBoss)
+            {
+                RewardBossKill();
+            }
+
             _wave++;
             _waveKills = 0;
             _bossAlive = false;
