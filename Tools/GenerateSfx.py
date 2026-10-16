@@ -141,6 +141,19 @@ SOUNDS = {
         (0.30, bell(1318.5, 0.9, 0.35, 0.5)),
         (0.30, bell(1568.0, 0.9, 0.35, 0.5)),
     ),
+    # weapon upgrade: rising sweep with a sparkle on top
+    "weapon_up": lambda: mix(
+        (0.00, osc(0.3, lambda t: 400 * E(t * 4.8), lambda t: math.sin(math.pi * t / 0.3) * 0.7)),
+        (0.16, bell(2093.0, 0.4, 0.1, 0.55)),
+        (0.23, bell(2637.0, 0.4, 0.1, 0.5)),
+    ),
+    # boss warning: two-tone siren
+    "boss_alarm": lambda: osc(
+        0.9,
+        lambda t: 440.0 if int(t / 0.225) % 2 == 0 else 330.0,
+        lambda t: 0.5 * min(1.0, (0.9 - t) / 0.1),
+        shape="saw",
+    ),
 }
 
 
