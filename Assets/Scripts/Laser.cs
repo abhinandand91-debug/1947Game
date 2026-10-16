@@ -37,6 +37,7 @@ public class Laser : MonoBehaviour
         }
 
         Explosion.Spawn(transform.position, EnemyWeapon ? new Color(1f, 0.3f, 0.3f) : new Color(0.4f, 0.8f, 1f), 0.3f);
+        Sfx.Play("laser_hit", 0.4f);
         Destroy(this.gameObject);
     }
 }
