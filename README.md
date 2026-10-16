@@ -10,3 +10,11 @@ Pilot your ship, dodge meteors, shoot down enemy ships and survive as long as yo
 
 ## Opening the project
 Open the project folder with Unity 2018.3.5f1 (or newer) and load `Assets/Scenes/MainScene.unity`.
+
+## Controls
+| Platform | Move | Shoot |
+|----------|------|-------|
+| Desktop  | Arrow keys / WASD | Space |
+| Mobile   | Touch and drag anywhere, the ship follows your finger | Auto-fires while touching |
+
+The game runs in landscape on Android and iOS.
